@@ -5,6 +5,7 @@
 //To run our server
 var express = require('express');
 var app = express();
+var PORT = process.env.PORT || 3000
 
 //Manage request body
 var bp = require('body-parser');
@@ -14,18 +15,20 @@ var logger = require('morgan');
 var exphbs = require('express-handlebars');
 
 //File containing all the routes
-var routes = require('./controllers/webscrapercommentator.js');
+var routes = require('./controllers/webscrapecommentator.js');
 
 //Database configuration with mongoose
 var mongoose = require('mongoose');
-var databaseUrl = "webscraper";
-var collections = ["comments"];
-mongoose.connect('mongodb://localhost/week18day3mongoose');
+mongoose.connect('mongodb://localhost/WebscrapeCommentator');
 var db = mongoose.connection;
 
+// Require our comment model
+var Comment = require('./commentModel.js');
+
 //////////////////////////
-////// Actual code //////
+////// Middleware ///////
 /////////////////////////
+
 
 //Enables access to public directory
 app.use(express.static('public'));
@@ -39,6 +42,11 @@ app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
 
+//////////////////////////
+////// Actual code //////
+/////////////////////////
+
+
 //Connect to dabase and throw error if present
 db.on('error', function(err) {
 	console.log('Database Error: ', err);
@@ -46,9 +54,6 @@ db.on('error', function(err) {
 
 //Use the controller file to handle the routing
 app.get('/', routes);
-
-//Set app to run at port 3000
-var PORT = process.env.PORT || 3000
 
 app.listen(PORT, function() {
 	console.log('App running on port 3000!');
