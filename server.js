@@ -15,12 +15,16 @@ var logger = require('morgan');
 var exphbs = require('express-handlebars');
 
 //File containing all the routes
-var routes = require('./controllers/webscrapecommentator.js');
+var routes = require('./controllers/routecontroller.js');
 
 //Database configuration with mongoose
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/WebscrapeCommentator');
+mongoose.connect('mongodb://localhost/WebscrapeComment');
 var db = mongoose.connection;
+
+//Pathing
+var path = require('path');
+
 
 // Require our comment model
 var Comment = require('./commentModel.js');
@@ -28,10 +32,6 @@ var Comment = require('./commentModel.js');
 //////////////////////////
 ////// Middleware ///////
 /////////////////////////
-
-
-//Enables access to public directory
-app.use(express.static('public'));
 
 //Parsing and logging request body
 app.use(bp.urlencoded({extended: false}))
@@ -41,6 +41,13 @@ app.use(logger('dev'));
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
+//Enables access to public directory
+// app.use(express.static('public'));
+// app.use(express.static(__dirname + '/public'));
+app.use(express.static(path.join(__dirname,'public')));
+
+// console.log("-----------------------------------")
+// console.log(app.use(express.static(__dirname)));
 
 //////////////////////////
 ////// Actual code //////

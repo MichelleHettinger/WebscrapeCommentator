@@ -5,7 +5,7 @@ var bp = require("body-parser");
 
 
 router.get('/', function(req,res) {
-	res.render('index')
+	res.render('home')
 });
 
 
