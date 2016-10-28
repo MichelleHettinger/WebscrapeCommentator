@@ -19,15 +19,16 @@ var routes = require('./controllers/routecontroller.js');
 
 //Database configuration with mongoose
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/WebscrapeComment');
+mongoose.connect('mongodb://localhost/webscrapecomment');
 var db = mongoose.connection;
 
 //Pathing
 var path = require('path');
 
 
-// Require our comment model
-var Comment = require('./commentModel.js');
+// Schemas
+var Article = require('./models/Article.js');
+var Note = require('./models/Comment.js');
 
 //////////////////////////
 ////// Middleware ///////
@@ -42,9 +43,9 @@ app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
 //Enables access to public directory
-// app.use(express.static('public'));
+app.use(express.static('public'));
 // app.use(express.static(__dirname + '/public'));
-app.use(express.static(path.join(__dirname,'public')));
+// app.use(express.static(path.join(__dirname,'public')));
 
 // console.log("-----------------------------------")
 // console.log(app.use(express.static(__dirname)));
