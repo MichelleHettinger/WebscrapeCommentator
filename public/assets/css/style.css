@@ -120,7 +120,7 @@ h1{
     opacity: .78;
 }
 
-#note-button {
+#comment-button {
   color: black;
   opacity: .45;
 	background-color : deepskyblue;
@@ -132,7 +132,7 @@ h1{
 	float:right;
 	margin-top:2%;
 }
-#note-box {
+#comment-box {
 	background-color: black;
     font-size: 20px;
     opacity: .58;
