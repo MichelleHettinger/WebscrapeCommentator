@@ -25,15 +25,15 @@ $(document).ready(function() {
 
 // set up these global variables
 var mongoData;
+var commentData;
 var dataCount = 0;
-var dataDate;
 
 // these variables let the fancy cube on our the page function properly
 var state = 0;
 var cubeRotateAry = ['show-front', 'show-back', 'show-right', 'show-left', 'show-top', 'show-bottom'];
 var sideAry = ['back', 'right', 'left', 'top', 'bottom', 'front'];
 
-// ajax get news data function
+// ajax get news articles
 var populate = function() {
 
   // jQuery AJAX call for JSON to grab all articles scraped to our db
@@ -44,8 +44,6 @@ var populate = function() {
 
     console.log(data);
 
-    // save the latest article's date and save it to dataDate
-    dataDate = mongoData[mongoData.length - 1].date;
   })
   // when that's done
   .done(function() {
@@ -127,6 +125,7 @@ var typeIt = function() {
   var headline = mongoData[dataCount].title;
   var summary = mongoData[dataCount].summary;
   dataCount++;
+  console.log("Article #: " + dataCount);
   // type animation for new summary
   (function type() {
     //console.log(newsText);
@@ -146,24 +145,29 @@ var typeIt = function() {
   }());
 };
 
-// ajax get comments data
+// ajax get comments
 var gather = function() {
 
   // find the article's current id
   var idCount = dataCount - 1;
 
-  // jQuery AJAX call for JSON data of comments
-  $.ajax({
-    type: "POST",
-    dataType: "json",
-    url: '/gather',
-    data: {
-      id: mongoData[idCount]._id
+
+  // jQuery AJAX call for JSON to grab all articles scraped to our db
+  $.getJSON('/comments', function(data) {
+
+    // save the articles object data to our mongoData variable
+    commentData = data;
+
+    if (commentData[idCount-1]){
+      console.log("Article ID: " + commentData[idCount-1]._id);
     }
+
   })
+
 
   // with that done, post the current Comments to the page
   .done(function(currentComments) {
+    console.log(currentComments);
     postComment(currentComments);
   })
 
@@ -176,14 +180,19 @@ var gather = function() {
 // function containing listener to save comments and clear comment taking area
 var saveComment = function() {
 
+
   // when someone clicks the comment button
   $("#comment-button").on('click', function() {
 
     // grab the value from the input box
     var text = $("#input-box").val();
 
+    console.log("Comment: " + text)
+
     // grab the current article's id
     var idCount = dataCount - 1;
+
+    console.log("Array Position: " + idCount);
 
     // ajax call to save the comment
     $.ajax({
@@ -191,9 +200,8 @@ var saveComment = function() {
       dataType: "json",
       url: '/save',
       data: {
-        id: mongoData[idCount]._id, // article id
-        date: dataDate, // date of article's last update
-        comment: text // date of comment
+        id: mongoData[idCount]._id,
+        comment: text
       }
     })
     // with that done
@@ -228,7 +236,7 @@ var postComment = function(currentComments) {
 
     // make the comment variable equal to itself, 
     // plus the new comment and a new line
-    comment = comment + currentComments[i].commentText + '\n';
+    comment = comment + currentComments[i].textBody + '\n';
   }
   // put the current collection of comments into the commentbox
   $("#comment-box").val(comment);

@@ -68,10 +68,8 @@ app.get('/articles', function(req, res){
 });
 
 // Viewing previous comments
-app.get('/articles/:id', function(req, res){
-	Article.findOne({'_id': req.params.id})
-	.populate('comment')
-	.exec(function(err, doc){
+app.get('/comments', function(req, res){
+	Comment.find({}, function(err, doc){
 		if (err){
 			console.log(err);
 		} else {
@@ -83,13 +81,16 @@ app.get('/articles/:id', function(req, res){
 
 // Posting a comment
 app.post('/save', function(req, res){
-	var newComment = new Comment(req.body);
+
+	var data = {textBody: req.body.comment}
+
+	var newComment = new Comment(data);
 
 	newComment.save(function(err, doc){
 		if(err){
 			console.log(err);
 		} else {
-			Article.findOneAndUpdate({'_id': req.params.id}, {'note':doc._id})
+			Article.findOneAndUpdate({'_id': req.body.id}, {'comment':doc._id})
 			.exec(function(err, doc){
 				if (err){
 					console.log(err);
