@@ -13,7 +13,8 @@ var logger = require('morgan');
 
 //Database configuration with mongoose
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/webscrapecomment');
+// mongoose.connect('mongodb://localhost/webscrapecomment');
+mongoose.connect('mongodb://heroku_96x0xqxl:6dd06jm4e83mm6fveu6dbmojl0@ds137197.mlab.com:37197/heroku_96x0xqxl'); //heroku
 var db = mongoose.connection;
 
 // Schemas
