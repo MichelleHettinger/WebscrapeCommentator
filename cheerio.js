@@ -8,8 +8,8 @@ var Article = require('./models/Article.js');
 var Note = require('./models/Comment.js');
 
 //Database configuration
-// mongoose.connect('mongodb://localhost/webscrapecomment');
-mongoose.connect('mongodb://heroku_96x0xqxl:6dd06jm4e83mm6fveu6dbmojl0@ds137197.mlab.com:37197/heroku_96x0xqxl'); //heroku
+mongoose.connect('mongodb://localhost/webscrapecomment');
+// mongoose.connect('mongodb://heroku_96x0xqxl:6dd06jm4e83mm6fveu6dbmojl0@ds137197.mlab.com:37197/heroku_96x0xqxl'); //heroku
 var db = mongoose.connection;
 
 
