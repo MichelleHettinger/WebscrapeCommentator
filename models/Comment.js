@@ -3,7 +3,11 @@ var Schema = mongoose.Schema;
 
 var CommentSchema = new Schema({
   textBody: {
-    type:String
+  	type:String
+  },
+  articleID:{
+    type: Schema.Types.ObjectId,
+    ref: 'Article'
   }
 });
 

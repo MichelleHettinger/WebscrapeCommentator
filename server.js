@@ -67,12 +67,12 @@ app.get('/articles', function(req, res){
 	});
 });
 
-// Retrieve all articles
-app.get('/comments/:cID/', function(req, res){
+// Retrieve all article comments
+app.get('/comments/:aID/', function(req, res){
 
-	var cID = req.params.cID;
+	var aID = req.params.aID;
 
-	Comment.find({'_id': cID }, function(err, doc){
+	Comment.find({"articleID": aID }, function(err, doc){
 		if (err){
 			console.log(err);
 		} else {
@@ -85,7 +85,10 @@ app.get('/comments/:cID/', function(req, res){
 // Posting a comment
 app.post('/save', function(req, res){
 
-	var data = {textBody: req.body.comment}
+	var data = {textBody: req.body.articleComment}
+
+	console.log("Updating Article " + req.body.articleID)
+
 
 	var newComment = new Comment(data);
 
@@ -93,7 +96,10 @@ app.post('/save', function(req, res){
 		if(err){
 			console.log(err);
 		} else {
-			Article.findOneAndUpdate({'_id': req.body.id}, {'comment':doc._id})
+
+			console.log("comment saved")
+
+			Comment.findOneAndUpdate({'_id': doc._id}, {'articleID':req.body.articleID})
 			.exec(function(err, doc){
 				if (err){
 					console.log(err);
@@ -107,6 +113,15 @@ app.post('/save', function(req, res){
 });
 
 
-// app.delete('/delete', function(req, res){
+app.delete('/delete/', function(req, res){
 
-// });
+	var aID = req.body.articleID;
+
+	Comment.remove({'articleID': aID }, function(err, doc){
+		if (err){
+			console.log(err);
+		} else {
+			res.json(doc);
+		}
+	});
+});

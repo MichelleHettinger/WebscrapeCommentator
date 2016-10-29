@@ -115,11 +115,13 @@ var ajaxGetComments = function() {
 
   console.log(globalObject.articleData)
 
-  var commentID = globalObject.articleData[globalObject.dataCount].comment;
-  console.log("CommentID: " + commentID)
+  var articleID = globalObject.articleData[globalObject.dataCount]._id;
+  console.log("articleID: " + articleID)
 
   // Get the comment correlating with the current article
-  $.getJSON('/comments/' + commentID, function(data) {
+  $.getJSON('/comments/' + articleID, function(data) {
+
+    console.log(data)
 
     // save the articles comment data to our commentData variable
     globalObject.articleComments = data;
@@ -238,14 +240,16 @@ var ajaxPostComment = function() {
 
     console.log("Array Position: " + globalObject.dataCount);
 
+    console.log("ArticleID: " + globalObject.articleData[globalObject.dataCount]._id)
+
     // ajax call to save the comment
     $.ajax({
       type: "POST",
       dataType: "json",
       url: '/save',
       data: {
-        id: globalObject.articleData[globalObject.dataCount]._id,
-        comment: textComment
+        articleID: globalObject.articleData[globalObject.dataCount]._id,
+        articleComment: textComment
       }
     })
     // with that done
@@ -257,7 +261,7 @@ var ajaxPostComment = function() {
       $("#comment-box").val("");
 
       // grab the comments again because we just saved a new comment
-      ajaxGetArticles();
+      ajaxGetComments();
     })
     // if it fails, give the user an error message
     .fail(function() {
@@ -276,7 +280,7 @@ var deleteComment = function() {
   $("#delete-button").on('click', function() {
 
     // make the idCount equal the current article
-    var idCount = globalObject.dataCount - 1;
+    var article = globalObject.dataCount;
 
     // send an ajax call to delete
     $.ajax({
@@ -284,7 +288,7 @@ var deleteComment = function() {
       dataType: "json",
       url: '/delete',
       data: {
-        id: articleData[idCount]._id,
+        articleID: globalObject.articleData[globalObject.dataCount]._id,
       }
     })
     // with that done, empty the comment-box input
