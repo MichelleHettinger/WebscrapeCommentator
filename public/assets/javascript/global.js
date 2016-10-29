@@ -7,125 +7,83 @@ $(document).ready(function() {
   // when the visitor clicks on the #seek-box
   $("#seek-box").click(function() {
 
-    // grab whatever article data has been scraped into our db
-    // and populate the proper sections.
-    populate();
+    // Start the serires of ajax calls
+    ajaxGetArticles();
+
+    // Enables click box functionality
+    clickBox();
 
     // hide the initial seek box from view
     $("#seek-box").hide();
 
   });
 
-
-
-
-
-
 });
 
-// set up these global variables
-var mongoData;
-var commentData;
-var dataCount = 0;
+var globalObject = {
 
-// these variables let the fancy cube on our the page function properly
-var state = 0;
-var cubeRotateAry = ['show-front', 'show-back', 'show-right', 'show-left', 'show-top', 'show-bottom'];
-var sideAry = ['back', 'right', 'left', 'top', 'bottom', 'front'];
+  articleData: null,     // To store current article data
+  articleComments: [],     // To store current article comments
+  dataCount: 0,          // For keeping track of article position in array
+  articleCount: 1,
 
-// ajax get news articles
-var populate = function() {
+  // These variables let the fancy cube on our the page function properly
+  state: 0,
+  cubeRotateAry: ['show-front', 'show-back', 'show-right', 'show-left', 'show-top', 'show-bottom'],
+  sideAry: ['back', 'right', 'left', 'top', 'bottom', 'front']
+
+}
+
+
+
+
+
+// This function starts the series of retreiving all data and displaying it
+var ajaxGetArticles = function() {
 
   // jQuery AJAX call for JSON to grab all articles scraped to our db
   $.getJSON('/articles', function(data) {
 
-    // save the articles object data to our mongoData variable
-    mongoData = data;
-
-    console.log(data);
+    // Save the articles object data to our articleData variable
+    globalObject.articleData = data;
 
   })
-  // when that's done
+  // When that's done
   .done(function() {
-    // running clickBox and saveComment functions
-    clickBox();
-    saveComment();
+
+    // Then display them
+    renderArticle();
+
+    // Also get the comments for that specific article
+    ajaxGetComments();
   });
 };
-
-// This function handles what happens when the cube is clicked
-var clickBox = function() {
-  $("#cube").on("click", function() {
-    // rotate cycle
-    if (state <= 5) {
-      state++;
-    } else {
-      state = 0;
-    }
-    // add the proper states to the cube based on where it's clicked
-    $('#cube').removeClass().addClass(cubeRotateAry[state]);
-
-    //animate headline
-    headline();
-
-    //animate text
-    typeIt();
-
-    //render comments
-    gather();
-
-    //enable delete click listener
-    deleteComment();
-
-    //show the comment boxes
-    $("#input-area").show();
-    $("#saved-area").show();
-  });
-};
-
-// render the headline headline
-var headline = function() {
-  // create the text related to the number of the current article
-  var show = "|| Article:" + (dataCount + 1) + " ||";
-  // place it in the text box
-  $("#headline").text(show);
-  // fade the headline in
-  $("#headline").fadeIn()
-    // and add these style properties to it
-    .css({
-      position: 'relative',
-      'text-align':'center',
-      top:100
-    })
-    .animate({
-      position:'relative',
-      top: 0
-    });
-};
-
 // This function handles typing animations
-var typeIt = function() {
+var renderArticle = function() {
   $("#typewriter-headline").remove();
   $("#typewriter-summary").remove();
   var h = 0;
   var s = 0;
   var newsText;
 
-  if (state > 0) {
-    side = state - 1;
+  if (globalObject.state > 0) {
+    globalObject.side = globalObject.state - 1;
   } else {
-    side = 5;
+    globalObject.side = 5;
   }
 
-  $("." + sideAry[side]).append("<div id='typewriter-headline'></div>");
-  $("." + sideAry[side]).append("<div id='typewriter-summary'></div>");
+  $("." + globalObject.sideAry[globalObject.side]).append("<div id='typewriter-headline'></div>");
+  $("." + globalObject.sideAry[globalObject.side]).append("<div id='typewriter-summary'></div>");
 
   // cycle to different story
-  console.log(mongoData);
-  var headline = mongoData[dataCount].title;
-  var summary = mongoData[dataCount].summary;
-  dataCount++;
-  console.log("Article #: " + dataCount);
+  console.log(globalObject.articleData);
+
+  // dataCount starts at zero, since the first article is at position 0 in the array.
+  var headline = globalObject.articleData[globalObject.dataCount].title;
+  var summary = globalObject.articleData[globalObject.dataCount].summary;
+
+  console.log("Article #: " + globalObject.articleCount);
+
   // type animation for new summary
   (function type() {
     //console.log(newsText);
@@ -144,31 +102,31 @@ var typeIt = function() {
     setTimeout(type, 35);
   }());
 };
-
 // ajax get comments
-var gather = function() {
+var ajaxGetComments = function() {
 
-  // find the article's current id
-  var idCount = dataCount - 1;
+  // Clear out the comments array
+  globalObject.articleComments.length = 0
 
+  var commentID = globalObject.articleData[globalObject.dataCount].comment;
+  console.log("CommentID: " + commentID)
 
-  // jQuery AJAX call for JSON to grab all articles scraped to our db
-  $.getJSON('/comments', function(data) {
+  // Get the comment correlating with the current article
+  $.getJSON('/comments/' + commentID, function(data) {
 
-    // save the articles object data to our mongoData variable
-    commentData = data;
+    console.log(data)
 
-    if (commentData[idCount-1]){
-      console.log("Article ID: " + commentData[idCount-1]._id);
-    }
+    // save the articles comment data to our commentData variable
+    globalObject.articleComments.push(data);
+
+    console.log(globalObject.articleComments)
 
   })
+  // After that finishes
+  .done(function() {
 
+    renderComment(globalObject.articleComments);
 
-  // with that done, post the current Comments to the page
-  .done(function(currentComments) {
-    console.log(currentComments);
-    postComment(currentComments);
   })
 
   // if something went wrong, tell the user
@@ -176,60 +134,16 @@ var gather = function() {
     console.log("Sorry. Server unavailable.");
   });
 };
-
-// function containing listener to save comments and clear comment taking area
-var saveComment = function() {
-
-
-  // when someone clicks the comment button
-  $("#comment-button").on('click', function() {
-
-    // grab the value from the input box
-    var text = $("#input-box").val();
-
-    console.log("Comment: " + text)
-
-    // grab the current article's id
-    var idCount = dataCount - 1;
-
-    console.log("Array Position: " + idCount);
-
-    // ajax call to save the comment
-    $.ajax({
-      type: "POST",
-      dataType: "json",
-      url: '/save',
-      data: {
-        id: mongoData[idCount]._id,
-        comment: text
-      }
-    })
-    // with that done
-    .done(function() {
-
-      // empty the input box
-      $("#input-box").val("");
-
-      // grab the comments again because we just saved a new comment
-      gather();
-    })
-    // if it fails, give the user an error message
-    .fail(function() {
-      console.log("Sorry. Server unavailable.");
-    });
-
-  });
-};
-
-
-// render comments from data in the last function
-var postComment = function(currentComments) {
+// Executed following ajaxGetComments
+var renderComment = function(currentComments) {
 
   // remove inputs from the comment box
   $("#comment-box").val("");
 
   // make an empty placeholder var for a comment
   var comment = "";
+
+  console.log(comment);
 
   // for each of the comments
   for (var i = 0; i < currentComments.length; i++) {
@@ -243,6 +157,111 @@ var postComment = function(currentComments) {
 };
 
 
+// This function handles what happens when the cube is clicked
+var clickBox = function() {
+
+  $("#cube").on("click", function() {
+    // Increment the article and array position
+    globalObject.dataCount++;
+    globalObject.articleCount++;
+
+    // rotate cycle
+    if (globalObject.state <= 5) {
+      globalObject.state++;
+    } else {
+      globalObject.state = 0;
+    }
+    // add the proper states to the cube based on where it's clicked
+    $('#cube').removeClass().addClass(globalObject.cubeRotateAry[globalObject.state]);
+
+    //animate headline
+    headline();
+
+    //enable delete click listener
+    deleteComment();
+
+    //show the comment boxes
+    $("#input-area").show();
+    $("#saved-area").show();
+
+    // Render current article
+    renderArticle();
+    // Get and render that articles comments
+    ajaxGetComments();
+
+
+  });
+};
+// render the headline headline
+var headline = function() {
+  // create the text related to the number of the current article
+  var show = "|| Article:" + (globalObject.dataCount + 1) + " ||";
+  // place it in the text box
+  $("#headline").text(show);
+  // fade the headline in
+  $("#headline").fadeIn()
+    // and add these style properties to it
+    .css({
+      position: 'relative',
+      'text-align':'center',
+      top:100
+    })
+    .animate({
+      position:'relative',
+      top: 0
+    });
+};
+
+
+
+
+
+
+// Posting comment to database
+var ajaxPostComment = function() {
+
+
+  // when someone clicks the comment button
+  $("#comment-button").on('click', function() {
+
+    // grab the value from the input box
+    var textComment = $("#input-box").val();
+
+    console.log("Comment: " + textComment)
+
+    // grab the current article's id
+    var idCount = globalObject.dataCount - 1;
+
+    console.log("Array Position: " + globalObject.idCount);
+
+    // ajax call to save the comment
+    $.ajax({
+      type: "POST",
+      dataType: "json",
+      url: '/save',
+      data: {
+        id: articleData[idCount]._id,
+        comment: textComment
+      }
+    })
+    // with that done
+    .done(function() {
+
+      // empty the input box
+      $("#input-box").val("");
+
+      // grab the comments again because we just saved a new comment
+      ajaxGetComments();
+    })
+    // if it fails, give the user an error message
+    .fail(function() {
+      console.log("Sorry. Server unavailable.");
+    });
+
+  });
+};
+
+
 
 // function containing listener to delete comments and clear comment taking area
 var deleteComment = function() {
@@ -251,7 +270,7 @@ var deleteComment = function() {
   $("#delete-button").on('click', function() {
 
     // make the idCount equal the current article
-    var idCount = dataCount - 1;
+    var idCount = globalObject.dataCount - 1;
 
     // send an ajax call to delete
     $.ajax({
@@ -259,7 +278,7 @@ var deleteComment = function() {
       dataType: "json",
       url: '/delete',
       data: {
-        id: mongoData[idCount]._id,
+        id: articleData[idCount]._id,
       }
     })
     // with that done, empty the comment-box input
@@ -273,14 +292,6 @@ var deleteComment = function() {
 
   });
 };
-
-
-
-
-// Don't need to edit the functions below //
-
-
-
 
 
 
@@ -298,3 +309,11 @@ var deleteComment = function() {
 //     alert("Sorry. Server unavailable.");
 //   });
 // };
+
+
+
+
+
+
+
+

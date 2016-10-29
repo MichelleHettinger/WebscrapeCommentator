@@ -67,9 +67,12 @@ app.get('/articles', function(req, res){
 	});
 });
 
-// Viewing previous comments
-app.get('/comments', function(req, res){
-	Comment.find({}, function(err, doc){
+// Retrieve all articles
+app.get('/comments/:cID/', function(req, res){
+
+	var cID = req.params.cID;
+
+	Comment.findOne({'_id': cID}, function(err, doc){
 		if (err){
 			console.log(err);
 		} else {
