@@ -72,7 +72,7 @@ app.get('/comments/:cID/', function(req, res){
 
 	var cID = req.params.cID;
 
-	Comment.findOne({'_id': cID}, function(err, doc){
+	Comment.find({'_id': cID }, function(err, doc){
 		if (err){
 			console.log(err);
 		} else {

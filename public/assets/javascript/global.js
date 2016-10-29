@@ -13,6 +13,12 @@ $(document).ready(function() {
     // Enables click box functionality
     clickBox();
 
+    //enable delete click listener
+    deleteComment();
+
+    //enable posting comment
+    ajaxPostComment();
+
     // hide the initial seek box from view
     $("#seek-box").hide();
 
@@ -23,7 +29,7 @@ $(document).ready(function() {
 var globalObject = {
 
   articleData: null,     // To store current article data
-  articleComments: [],     // To store current article comments
+  articleComments: null,     // To store current article comments
   dataCount: 0,          // For keeping track of article position in array
   articleCount: 1,
 
@@ -105,8 +111,9 @@ var renderArticle = function() {
 // ajax get comments
 var ajaxGetComments = function() {
 
-  // Clear out the comments array
-  globalObject.articleComments.length = 0
+  globalObject.articleComments = null;
+
+  console.log(globalObject.articleData)
 
   var commentID = globalObject.articleData[globalObject.dataCount].comment;
   console.log("CommentID: " + commentID)
@@ -114,10 +121,8 @@ var ajaxGetComments = function() {
   // Get the comment correlating with the current article
   $.getJSON('/comments/' + commentID, function(data) {
 
-    console.log(data)
-
     // save the articles comment data to our commentData variable
-    globalObject.articleComments.push(data);
+    globalObject.articleComments = data;
 
     console.log(globalObject.articleComments)
 
@@ -143,15 +148,15 @@ var renderComment = function(currentComments) {
   // make an empty placeholder var for a comment
   var comment = "";
 
-  console.log(comment);
-
-  // for each of the comments
   for (var i = 0; i < currentComments.length; i++) {
 
     // make the comment variable equal to itself, 
     // plus the new comment and a new line
     comment = comment + currentComments[i].textBody + '\n';
   }
+
+  console.log(comment);
+
   // put the current collection of comments into the commentbox
   $("#comment-box").val(comment);
 };
@@ -165,6 +170,11 @@ var clickBox = function() {
     globalObject.dataCount++;
     globalObject.articleCount++;
 
+    // Clear out the comments array
+    globalObject.articleComments = null
+
+    $("#comment-box").val("");
+
     // rotate cycle
     if (globalObject.state <= 5) {
       globalObject.state++;
@@ -176,9 +186,6 @@ var clickBox = function() {
 
     //animate headline
     headline();
-
-    //enable delete click listener
-    deleteComment();
 
     //show the comment boxes
     $("#input-area").show();
@@ -229,10 +236,7 @@ var ajaxPostComment = function() {
 
     console.log("Comment: " + textComment)
 
-    // grab the current article's id
-    var idCount = globalObject.dataCount - 1;
-
-    console.log("Array Position: " + globalObject.idCount);
+    console.log("Array Position: " + globalObject.dataCount);
 
     // ajax call to save the comment
     $.ajax({
@@ -240,7 +244,7 @@ var ajaxPostComment = function() {
       dataType: "json",
       url: '/save',
       data: {
-        id: articleData[idCount]._id,
+        id: globalObject.articleData[globalObject.dataCount]._id,
         comment: textComment
       }
     })
@@ -249,9 +253,11 @@ var ajaxPostComment = function() {
 
       // empty the input box
       $("#input-box").val("");
+      // empty the comment box
+      $("#comment-box").val("");
 
       // grab the comments again because we just saved a new comment
-      ajaxGetComments();
+      ajaxGetArticles();
     })
     // if it fails, give the user an error message
     .fail(function() {
